@@ -59,7 +59,7 @@ var connectionString = builder.Configuration["ConnectionStrings:DefaultConnectio
 services.AddDbContext<IApplicationDbContext, ApplicationDbContext>(options =>
 {
     options.ConfigureWarnings(warningsConfigurationBuilder => warningsConfigurationBuilder.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
-    options.UseLazyLoadingProxies().UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
 services.AddScoped<IGerenciadorDeAnexo, GerenciadorDeAnexo>();
