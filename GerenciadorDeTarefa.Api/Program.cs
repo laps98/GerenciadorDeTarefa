@@ -62,7 +62,7 @@ services.AddDbContext<IApplicationDbContext, ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
-services.AddScoped<IGerenciadorDeAnexo, GerenciadorDeAnexo>();
+services.AddDomainInjection();
 
 services.AddControllersWithViews()
     .AddNewtonsoftJson(options =>

@@ -1,6 +1,7 @@
 ﻿namespace GerenciadorDeTarefa.Domain.ViewModel;
 public class TarefaRequest
 {
+    public int? id { get; set; }
     public string Titulo { get; set; }
     public string Descricao { get; set; }
     public DateTime DataDaTarefa { get; set; }

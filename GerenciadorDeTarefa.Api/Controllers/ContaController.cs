@@ -1,17 +1,18 @@
 ﻿using GerenciadorDeTarefa.Api.Services;
 using GerenciadorDeTarefa.Domain;
+using GerenciadorDeTarefa.Domain.ViewModel;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
+//using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GerenciadorDeTarefa.Api.Controllers;
 
 [AllowAnonymous]
-public class ContasController : BaseApiController
+public class ContaController : BaseApiController
 {
     private readonly IApplicationDbContext _context;
 
-    public ContasController(IApplicationDbContext context)
+    public ContaController(IApplicationDbContext context)
     {
         _context = context;
     }
@@ -19,11 +20,11 @@ public class ContasController : BaseApiController
     [HttpPost("Token")]
     public IActionResult Autenticar([FromBody] LoginRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.Email))
+        if (string.IsNullOrWhiteSpace(request.Senha) || string.IsNullOrWhiteSpace(request.Email))
             return BadRequest(new { Message = "Login e a senha devem estar preeenchidos!" });
 
 
-        if (request.Password == null ||  request.Password != "123456")
+        if (request.Email != "admin@admin" ||  request.Senha != "123456")
             return BadRequest(new { Message = "Usuário ou senha inválidos!" });
 
         var token = TokenService.GenerateToken();

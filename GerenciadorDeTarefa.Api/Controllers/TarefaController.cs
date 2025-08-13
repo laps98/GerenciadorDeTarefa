@@ -2,70 +2,121 @@
 using GerenciadorDeTarefa.Domain.Anexo;
 using GerenciadorDeTarefa.Domain.Tarefas;
 using GerenciadorDeTarefa.Domain.ViewModel;
+using GerenciadorDeTarefa.Domain.ViewModel.Filtros;
+using IronBug.Helpers;
 using IronBugCore.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 namespace GerenciadorDeTarefa.Api.Controllers;
 
-public class TarefasController : BaseApiController
+public class TarefaController : BaseApiController
 {
     private readonly IApplicationDbContext _context;
-    private readonly GerenciadorDeAnexo _anexo;
+    private readonly IGerenciadorDeAnexo _anexo;
 
-    public TarefasController(GerenciadorDeAnexo anexo, IApplicationDbContext context)
+    public TarefaController(IGerenciadorDeAnexo anexo, IApplicationDbContext context)
     {
         _anexo = anexo;
         _context = context;
     }
 
-    [HttpPost("Criar")]
-    public async Task<IActionResult> Criar([FromBody] TarefaRequest request)
+    [HttpPost("Save")]
+    public async Task<IActionResult> Save([FromBody] TarefaRequest request)
     {
-        var tarefa = new Tarefa
-        {
-            Titulo = request.Titulo,
-            Descricao = request.Descricao,
-            DataDaTarefa = request.DataDaTarefa
-        };
-        _context.Tarefas.Add(tarefa);
-        _context.SaveChanges();
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        foreach (var img in request.Imagens)
+        var anexos = new List<string>();
+        try
         {
-            var caminho = await _anexo.SalvarImagem(img);
-            var anexo = new AnexoDaTarefa
+            var tarefa = _context.Tarefas.Include(q => q.Anexos).FirstOrDefault(t => t.Id == request.id) ?? new Tarefa();
+            var idDosAnexosDaRequest = request.Imagens.Select(q => q.id??0).ToList();
+            var idosDosAnexosDoBanco = tarefa.Anexos.Select(q => q.Id).ToList();
+            var idsParaRemover = idosDosAnexosDoBanco.Except(idDosAnexosDaRequest).ToList();
+
+            tarefa.Titulo = request.Titulo;
+            tarefa.Descricao = request.Descricao;
+            tarefa.DataDaTarefa = request.DataDaTarefa;
+
+            if (tarefa.Id == 0)
+                _context.Tarefas.Add(tarefa);
+            else
+                _context.Tarefas.Update(tarefa);
+
+            _context.SaveChanges();
+
+            foreach (var img in request.Imagens)
             {
-                IdTarefa = tarefa.Id,
-                Caminho = caminho
+                if (!string.IsNullOrEmpty(img.Base64))
+                {
+                    var caminho = await _anexo.SalvarImagem(img);
+                    anexos.Add(caminho);
+                    var anexo = new AnexoDaTarefa
+                    {
+                        IdTarefa = tarefa.Id,
+                        Caminho = caminho
+                    };
+                    _context.AnexosDasTarefas.Add(anexo);
+                }
+            }
+            _context.SaveChanges();
 
-            };
-        _context.AnexosDasTarefas.Add(anexo);
+            foreach (var img in tarefa.Anexos.Where(q=>idsParaRemover.Contains(q.Id)))
+            {
+                _anexo.ExcluirImagem(img.Caminho);
+                _context.AnexosDasTarefas.Remove(img);
+            }
+
+            _context.SaveChanges();
+
+            scope.Complete();
+
+            return Ok();
         }
-        _context.SaveChanges();
+        catch (Exception e)
+        {
+            foreach (var img in anexos)
+                _anexo.ExcluirImagem(img);
 
-        return Ok(tarefa);
+            return BadRequest(e.Message);
+        }
+
     }
 
-    [HttpGet]
-    public IActionResult Listar([FromQuery] QueryFilter filter)
+    [HttpGet("Listar")]
+    public IActionResult Listar([FromQuery] TarefaQueryFilter filter)
     {
-        IQueryable<Tarefa> query = _context.Tarefas;
+        IQueryable<Tarefa> query = _context.Tarefas.Include(q => q.Anexos);
 
 
-        if (!string.IsNullOrWhiteSpace(filter.Search))
+        if (!string.IsNullOrWhiteSpace(filter.Titulo))
         {
-            string like = $"%{filter.Search.ToLower().Trim()}%";
+            string like = $"%{filter.Titulo.ToLower().Trim()}%";
             query = query.Where(q =>
                 filter.Search == "" ||
-                EF.Functions.Like(q.Descricao, like));
+                EF.Functions.Like(q.Titulo, like));
         }
 
+        if (filter.DataDaTarefa != null) {
+            query = query.Where(q => q.DataDaTarefa.Date == filter.DataDaTarefa.Value.Date);
+        }
 
         var paged = query.Paginate(filter);
-        paged.AddSorterField(q => q.Descricao);
+        paged.AddSorterField("Data", q => q.DataDaTarefa);
 
-        return Ok(paged);
+        var response = paged.Select(q => new
+        {
+            q.Id,
+            q.Titulo,
+            q.Descricao,
+            DataDaTarefa = q.DataDaTarefa.ToString("dd/MM/yyyy"),
+
+            Imagens = q.Anexos.Select(q => new { q.Id, q.Caminho }).ToList()
+
+        }).ToList();
+
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
@@ -108,7 +159,7 @@ public class TarefasController : BaseApiController
         return Ok();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("Excluir/{id}")]
     public IActionResult Excluir(int id)
     {
         var tarefa = _context.Tarefas.FirstOrDefault(t => t.Id == id);
@@ -122,7 +173,8 @@ public class TarefasController : BaseApiController
         }
 
         _context.Tarefas.Remove(tarefa);
+        _context.SaveChanges();
 
-        return NoContent();
+        return Ok();
     }
 }
