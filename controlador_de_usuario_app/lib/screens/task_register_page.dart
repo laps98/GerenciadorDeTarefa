@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:controlador_de_usuario_app/components/date_input.dart';
+import 'package:controlador_de_usuario_app/components/dropdown.dart';
 import 'package:controlador_de_usuario_app/helpers/future_helper.dart';
+import 'package:controlador_de_usuario_app/models/enums/statas_da_tarefa.dart';
 import 'package:controlador_de_usuario_app/models/tarefa_request.dart';
 import 'package:controlador_de_usuario_app/models/tarefa_response.dart';
 import 'package:controlador_de_usuario_app/services/tarefa_sevice.dart';
@@ -32,7 +34,7 @@ class _TaskRegisterPageState extends State<TaskRegisterPage> {
 
   @override
   void initState() {
-    if(widget.response != null) {
+    if (widget.response != null) {
       _request = TarefaRequest.fromResponse(widget.response!);
     }
     super.initState();
@@ -41,16 +43,18 @@ class _TaskRegisterPageState extends State<TaskRegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tarefa'),
+      appBar: AppBar(
+        title: const Text('Tarefa'),
         actions: [
-          if(_request.id!=null)
-          IconButton(
-            icon: const Icon(Icons.recycling),
-            onPressed: () {
-              _service.excluir(_request.id!).whenComplete(() => Navigator.pop(context)).handleError(context);
-            },
-          ),
-        ],),
+          if (_request.id != null)
+            IconButton(
+              icon: const Icon(Icons.recycling),
+              onPressed: () {
+                _service.excluir(_request.id!).whenComplete(() => Navigator.pop(context)).handleError(context);
+              },
+            ),
+        ],
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
@@ -101,6 +105,21 @@ class _TaskRegisterPageState extends State<TaskRegisterPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+
+                Dropdown<StatusDaTarefa>(
+                  label: 'Status',
+                  value: _request.status,
+                  hasNullOption: false,
+                  items: StatusDaTarefa.values.map((e) => e.toDropdownItem).toList(),
+                  onChange: (StatusDaTarefa? value) {
+                    if (value != null) {
+                      setState(() {
+                        _request.status = value;
+                      });
+                    }
+                  },
+                  validator: (value) => value == null ? 'Selecione um status' : null,
+                ),
 
                 ElevatedButton(
                   onPressed: _pickImages,

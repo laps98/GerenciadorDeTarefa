@@ -1,3 +1,5 @@
+import 'package:controlador_de_usuario_app/components/dropdown.dart';
+import 'package:controlador_de_usuario_app/models/enums/statas_da_tarefa.dart';
 import 'package:controlador_de_usuario_app/models/tarefa_response.dart';
 import 'package:controlador_de_usuario_app/screens/task_register_page.dart';
 import 'package:controlador_de_usuario_app/services/tarefa_sevice.dart';
@@ -18,6 +20,7 @@ class _TaskPageState extends State<TaskPage> {
 
   String? _filterTitulo;
   DateTime? _filterData;
+  StatusDaTarefa? _status;
 
   final TextEditingController _tituloController = TextEditingController();
 
@@ -36,6 +39,7 @@ class _TaskPageState extends State<TaskPage> {
         page: page,
         titulo: _filterTitulo,
         dataDaTarefa: _filterData,
+        status: _status
       );
       final isLastPage = newItems.length < 10;
       if (isLastPage) {
@@ -131,6 +135,19 @@ class _TaskPageState extends State<TaskPage> {
                 ],
               ),
             ),
+
+      Dropdown<StatusDaTarefa>(
+        label: 'Status',
+        value: _status,
+        hasNullOption: true,
+        items: StatusDaTarefa.values.map((e) => e.toDropdownItem).toList(),
+        onChange: (StatusDaTarefa? value) {
+          setState(() {
+            _status = value;
+          });
+          _pagingController.refresh();
+        },
+      ),
 
             // LISTAGEM
             Expanded(

@@ -38,6 +38,7 @@ public class TarefaController : BaseApiController
             tarefa.Titulo = request.Titulo;
             tarefa.Descricao = request.Descricao;
             tarefa.DataDaTarefa = request.DataDaTarefa;
+            tarefa.Status = request.Status;
 
             if (tarefa.Id == 0)
                 _context.Tarefas.Add(tarefa);
@@ -102,6 +103,11 @@ public class TarefaController : BaseApiController
             query = query.Where(q => q.DataDaTarefa.Date == filter.DataDaTarefa.Value.Date);
         }
 
+        if (filter.Status != null)
+        {
+            query = query.Where(q => q.Status == filter.Status);
+        }
+
         var paged = query.Paginate(filter);
         paged.AddSorterField("Data", q => q.DataDaTarefa);
 
@@ -110,6 +116,7 @@ public class TarefaController : BaseApiController
             q.Id,
             q.Titulo,
             q.Descricao,
+            q.Status,
             DataDaTarefa = q.DataDaTarefa.ToString("dd/MM/yyyy"),
 
             Imagens = q.Anexos.Select(q => new { q.Id, q.Caminho }).ToList()
@@ -117,46 +124,6 @@ public class TarefaController : BaseApiController
         }).ToList();
 
         return Ok(response);
-    }
-
-    [HttpGet("{id}")]
-    public IActionResult Obter(int id)
-    {
-        var tarefa = _context.Tarefas.FirstOrDefault(t => t.Id == id);
-        if (tarefa == null) return BadRequest("Tarefa não encontrada");
-        return Ok(tarefa);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Atualizar(int id, [FromBody] TarefaRequest request)
-    {
-        var tarefa = _context.Tarefas.FirstOrDefault(t => t.Id == id);
-        if (tarefa == null) return BadRequest("Tarefa não encontrada");
-
-        tarefa.Titulo = request.Titulo;
-        tarefa.Descricao = request.Descricao;
-        tarefa.DataDaTarefa = request.DataDaTarefa;
-
-        foreach (var img in tarefa.Anexos)
-            _anexo.ExcluirImagem(img.Caminho);
-
-        tarefa.Anexos.Clear();
-
-        foreach (var img in request.Imagens)
-        {
-            var caminho = await _anexo.SalvarImagem(img);
-            var anexo = new AnexoDaTarefa
-            {
-                IdTarefa = tarefa.Id,
-                Caminho = caminho
-
-            };
-            _context.AnexosDasTarefas.Add(anexo);
-        }
-
-        _context.SaveChanges();
-
-        return Ok();
     }
 
     [HttpDelete("Excluir/{id}")]
@@ -177,4 +144,45 @@ public class TarefaController : BaseApiController
 
         return Ok();
     }
+
+    //[HttpGet("{id}")]
+    //public IActionResult Obter(int id)
+    //{
+    //    var tarefa = _context.Tarefas.FirstOrDefault(t => t.Id == id);
+    //    if (tarefa == null) return BadRequest("Tarefa não encontrada");
+    //    return Ok(tarefa);
+    //}
+
+    //[HttpPut("{id}")]
+    //public async Task<IActionResult> Atualizar(int id, [FromBody] TarefaRequest request)
+    //{
+    //    var tarefa = _context.Tarefas.FirstOrDefault(t => t.Id == id);
+    //    if (tarefa == null) return BadRequest("Tarefa não encontrada");
+
+    //    tarefa.Titulo = request.Titulo;
+    //    tarefa.Descricao = request.Descricao;
+    //    tarefa.DataDaTarefa = request.DataDaTarefa;
+
+    //    foreach (var img in tarefa.Anexos)
+    //        _anexo.ExcluirImagem(img.Caminho);
+
+    //    tarefa.Anexos.Clear();
+
+    //    foreach (var img in request.Imagens)
+    //    {
+    //        var caminho = await _anexo.SalvarImagem(img);
+    //        var anexo = new AnexoDaTarefa
+    //        {
+    //            IdTarefa = tarefa.Id,
+    //            Caminho = caminho
+
+    //        };
+    //        _context.AnexosDasTarefas.Add(anexo);
+    //    }
+
+    //    _context.SaveChanges();
+
+    //    return Ok();
+    //}
+
 }

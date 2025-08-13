@@ -1,3 +1,4 @@
+import 'package:controlador_de_usuario_app/models/enums/statas_da_tarefa.dart';
 import 'package:controlador_de_usuario_app/models/filters/query_filter.dart';
 import 'package:controlador_de_usuario_app/models/tarefa_request.dart';
 import 'package:controlador_de_usuario_app/models/tarefa_response.dart';
@@ -10,6 +11,7 @@ class TarefaService extends BaseService {
     required int page,
     String? titulo,
     DateTime? dataDaTarefa,
+    StatusDaTarefa? status,
   }) async {
     var filters = QueryFilter(
       predicate: 'Data',
@@ -20,6 +22,7 @@ class TarefaService extends BaseService {
     ).toJson();
     filters['titulo'] = titulo;
     filters['dataDaTarefa'] = dataDaTarefa?.toIso8601String();
+    filters['status'] = status?.index.toString();
 
     var response = await list('$_controllerName/Listar', queryParameters: filters);
     List<TarefaResponse> tarefas = response.map((q) => TarefaResponse.fromJson(q)).toList();

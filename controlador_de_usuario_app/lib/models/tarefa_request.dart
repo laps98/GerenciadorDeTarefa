@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:controlador_de_usuario_app/models/enums/statas_da_tarefa.dart';
 import 'package:controlador_de_usuario_app/models/tarefa_response.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ class TarefaRequest {
   TextEditingController titulo = TextEditingController();
   TextEditingController descricao = TextEditingController();
   TextEditingController dataDaTarefa = TextEditingController();
+  StatusDaTarefa status = StatusDaTarefa.pendente;
   List<ImagemAnexo> imagens = [];
   
   TarefaRequest();
@@ -39,6 +41,7 @@ class TarefaRequest {
       'titulo': titulo.text,
       'descricao': descricao.text,
       'dataDaTarefa': dataFormatada?.toIso8601String() ?? '',
+      'status': status.index,
       'imagens': imagensToJson,
     };
   }
@@ -48,6 +51,7 @@ class TarefaRequest {
     request.id = response.id;
     request.titulo.text = response.titulo;
     request.descricao.text = response.descricao;
+    request.status = response.status;
 
     request.dataDaTarefa.text = response.dataDaTarefa;
 
