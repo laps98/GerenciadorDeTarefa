@@ -1,13 +1,28 @@
-Nesse projeto utilizei o MVC e o DDD clean (Api, Domain, Context)
-Api: Fiz um crud de tarefa e uma login utilizando o jwt
-Context: Utilizai o Ientity para criação do banco utilizando codefirst
-Domain: Adicionei o modelo de negocio e centralizei o dto 
+1. Banco de Dados Local (MySQL com Docker)
+Criar container MySQL com Docker
+docker run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_DATABASE=tarefas_db -p 3306:3306 mariadb:10.5
+startar container: docker start mysql 
+parar container: docker stop mysql
+reiniciar container: docker rm mysql
 
-Geral:
-Adicionei o swagger para conseguir fazer as chamadas na api sem utilizar o aplicativo
-Utilizei uma biblioteca de terceiro para criação de filtro e fazer a paginação nas listagens
-Criei um serviço para salvar e excluir arquivos de imagem localmente 
+2. Backend - API em C# (ASP.NET Core MVC + DDD + Code First + JWT)
 
-No aplicativo fiz uma tela de login, listagem de tarefa e criação de tarefa
+3. Funcionalidades da API
+CRUD de Tarefas (Create, Read, Update, Delete)
+Upload e exclusão de anexos locais
+Autenticação via JWT para proteger rotas (login com email/senha)
+Paginacao e filtros (titulo, data)
 
-observação importante: perdi o primeiro projeto que estava 100% integrado e tive que refazer esse segundo sem conseguir integrar a Api com o aplicativo. Por esse motivo acabei atrasando o teste e não consegui finalizar a edição da tarefa via aplicativo.
+Login com JWT
+Usuário admin: email: admin@admin, senha: 123456
+
+Como rodar o projeto
+Subir banco MySQL com docker (como no passo 1)
+
+Ajustar connection string no backend
+
+Rodar migrations para criar banco (dotnet ef database update)
+
+Executar API (dotnet run)
+
+Rodar app Flutter (flutter run)
