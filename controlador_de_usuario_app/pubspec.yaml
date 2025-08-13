@@ -1,0 +1,31 @@
+name: controlador_de_usuario_app
+description: "Um projeto especial para um teste especial"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  intl: ^0.19.0
+  dio: ^5.9.0
+  shared_preferences: ^2.5.3
+  infinite_scroll_pagination: ^4.0.0
+  mask_text_input_formatter: ^2.9.0
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+
+  uses-material-design: true
+
